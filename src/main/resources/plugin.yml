@@ -1,0 +1,8 @@
+name: GiftPack
+version: '${project.version}'
+main: ideamc.giftpack.GiftPackMain
+api-version: '1.13'
+authors: [xiantiao]
+website: https://github.com/IdeaMC/GiftPack
+commands:
+  giftpack:
