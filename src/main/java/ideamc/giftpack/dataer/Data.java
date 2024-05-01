@@ -30,7 +30,7 @@ public interface Data {
      * @param i GiftPack UID
      * @return 可能null
      */
-    GiftPack getGiftPack(int i);
+    GiftPack getGiftPack(int i) throws SQLException;
 
     /**
      * 获取 GiftPack 数量

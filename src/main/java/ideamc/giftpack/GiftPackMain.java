@@ -9,7 +9,9 @@ import ideamc.giftpack.dataer.sqlite.SQLiter;
 import ideamc.giftpack.error.DataError;
 import ideamc.giftpack.error.SaveDataError;
 import ideamc.giftpack.utils.GiftPack;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -39,7 +41,7 @@ public final class GiftPackMain extends JavaPlugin {
         configConfigManager.reloadConfig();
 
         if ("SQLiter".equals(configConfigManager.getConfigData().storage().method())) {
-            data = new SQLiter(getDataFolder().getPath()+"/data.db");
+            data = new SQLiter();
             data.initialization();
         } else {
             getLogger().severe("unKnow storage method");
@@ -52,15 +54,23 @@ public final class GiftPackMain extends JavaPlugin {
 
         getCommand("giftpack").setExecutor(new GiftPackCommand());
 
-        test();
+        try {
+            GiftPack giftPack = data.getGiftPack(6);
+
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                onlinePlayer.openInventory(giftPack.getInventory());
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        //test();
     }
 
 
     void test() {
-        Data data = new SQLiter(getDataFolder()+"/data.db");
-
-        data.initialization();
-
+        Data data = new SQLiter();
 
         ItemStack itemStack = new ItemStack(Material.GOLDEN_AXE);
         itemStack.setLore(Collections.singletonList("测试"));

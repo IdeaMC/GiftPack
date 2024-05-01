@@ -27,16 +27,15 @@ import java.util.logging.Logger;
  */
 public class SQLiter implements Data {
     private static final GiftPackMain instance = GiftPackMain.getInstance();
-    private static final Logger logger = GiftPackMain.getInstance().getLogger();
     private static final String TABLE_giftpack;
-    private final String dbFile;
+    //private final String dbFile;
     private DataSource dataSource;
     public DataSource getDataSource() {
         return dataSource;
     }
 
     static {
-        TABLE_giftpack = "CREATE TABLE \"main\".\"giftpack\" (\"uid\" integer NOT NULL PRIMARY KEY AUTOINCREMENT,\"name\" TEXT(32),\"itemstack\" TEXT,\"lore\" TEXT,\"creator\" TEXT,\"inventory\" TEXT,\"time\" integer);";
+        TABLE_giftpack = "CREATE TABLE \"main\".\"giftpack\" (\"uid\" integer NOT NULL PRIMARY KEY AUTOINCREMENT,\"name\" TEXT(32),\"itemstack\" TEXT,\"creator\" TEXT,\"inventory\" TEXT,\"time\" integer);";
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
@@ -44,21 +43,72 @@ public class SQLiter implements Data {
         }
     }
 
-    public SQLiter(String dbFile) {
-        // 创建 HikariCP 配置
+    public SQLiter() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:sqlite:"+dbFile);
-        config.setMaximumPoolSize(500); // 设置连接池的最大连接数
-
-        // 创建数据源
+        config.setJdbcUrl("jdbc:sqlite:"+instance.getDataFolder()+"/data.db");
+        config.setMaximumPoolSize(1); // 设置连接池的最大连接数
         dataSource = new HikariDataSource(config);
-
-        this.dbFile = dbFile;
     }
 
+    public SQLiter(String s) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:sqlite:"+s);
+        config.setMaximumPoolSize(1); // 设置连接池的最大连接数
+        dataSource = new HikariDataSource(config);
+    }
+
+
     @Override
-    public GiftPack getGiftPack(int i) {
-        return null;
+    public GiftPack getGiftPack(int uid) throws SQLException {
+
+        Connection connection;
+        try {
+            connection = getDataSource().getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        Statement stmt = connection.createStatement();
+        connection.setAutoCommit(false);
+        String sql = "SELECT * FROM giftpack WHERE uid = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, String.valueOf(uid));
+
+
+        ResultSet rs = preparedStatement.executeQuery();
+        System.out.println("executeQuery "+uid);
+        System.out.println(rs.getFetchSize());
+
+        rs.next();
+
+        String name = rs.getString("name");
+        ItemStack itemStack = ItemStack(rs.getString("uid"));
+        UUID creator = UUID.fromString(rs.getString("uid"));
+        Inventory inventory = Inventory(rs.getString("uid"));
+
+
+        stmt.close();
+        connection.commit();
+        connection.close();
+
+        connection.commit();
+
+        stmt.close();
+        connection.commit();
+        connection.close();
+
+        GiftPack giftPack = new GiftPack(name,itemStack,creator);
+        giftPack.uid = uid;
+        giftPack.getInventory().addItem(inventory.getContents());
+        return giftPack;
+    }
+    public static ItemStack ItemStack(String jsonString) {
+        Gson gson = new Gson();
+        return gson.fromJson(jsonString, ItemStack.class);
+    }
+    public static Inventory Inventory(String jsonString) {
+        Gson gson = new Gson();
+        return gson.fromJson(jsonString, Inventory.class);
     }
 
     @Override
@@ -135,9 +185,7 @@ public class SQLiter implements Data {
         }
 
         String json = intTtemMap.toString();
-        logger.info("json "+intTtemMap);
-
-        Statement stmt = null;
+        System.out.println("json "+intTtemMap);
 
         final long timeMillis = System.currentTimeMillis();
 
@@ -151,20 +199,21 @@ public class SQLiter implements Data {
         try {
             connection.setAutoCommit(false); // 关闭自动提交模式
 
-            String sql = "INSERT INTO main.giftpack (name, itemstack, lore, creator, inventory, time) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, "name");
-            preparedStatement.setString(2, "itemstack");
-            preparedStatement.setString(3, "lore");
-            preparedStatement.setString(4, "creator");
-            preparedStatement.setString(5, json); // 假设 json 是你的 JSON 数据
-            preparedStatement.setLong(6, timeMillis); // 假设 timeMillis 是你的时间戳
+            preparedStatement.setString(1, giftPack.displayName);
+            preparedStatement.setString(2, giftPack.displayItemStack.toString());
+            preparedStatement.setString(3, giftPack.creator.toString());
+            preparedStatement.setString(4, json); // 假设 json 是你的 JSON 数据
+            preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
 
             preparedStatement.executeUpdate(); // 执行插入操作
 
-            logger.info("executeUpdate "+timeMillis);
+            System.out.println("executeUpdate "+timeMillis);
 
             connection.commit(); // 提交事务
+
+            preparedStatement.close();
         } catch (SQLException e) {
             try {
                 connection.rollback(); // 回滚事务
@@ -186,42 +235,48 @@ public class SQLiter implements Data {
         }
 
         try {
+            return getUID(timeMillis);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public int getUID(long timeMillis) throws SQLException {
+        Connection connection;
+        try {
             connection = getDataSource().getConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        int uid;
-        try {
-            stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery( "SELECT uid FROM main.giftpack WHERE time = " + timeMillis+";" );
-            logger.info("executeQuery "+timeMillis);
-            logger.info(rs.toString());
-            if (rs.getFetchSize() != 1) {
-                try {
-                    throw new SaveDataError(SaveDataError.SaveDataErrorType.CanNotGetUid);
-                } catch (SaveDataError e) {
-                    throw new RuntimeException(e);
-                }
-            }
 
-            uid = rs.getInt(0);
+        Statement stmt = connection.createStatement();
+        connection.setAutoCommit(false);
+        String sql = "SELECT * FROM giftpack WHERE time = ?";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, String.valueOf(timeMillis));
 
+
+        ResultSet rs = preparedStatement.executeQuery();
+        System.out.println("executeQuery "+timeMillis);
+        System.out.println(rs.getFetchSize());
+
+        while (rs.next()) {
+            // 处理查询结果
+            int uid = rs.getInt("uid");
+            System.out.println("Found data with id " + uid);
             stmt.close();
             connection.commit();
-        } catch (SQLException e) {
-            try {
-                throw new DataError(e);
-            } catch (DataError ex) {
-                throw new RuntimeException(ex);
-            }
+            connection.close();
+            return uid;
         }
 
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return uid;
+        connection.commit();
+
+        stmt.close();
+        connection.commit();
+        connection.close();
+
+        return 0;
     }
 
     @Override
@@ -231,13 +286,10 @@ public class SQLiter implements Data {
 
     @Override
     public void initialization() {
-        logger.info("initialization SQLiter...");
-
         {
-            logger.info("initialization SQLiter table giftpack...");
             Statement stmt;
 
-            Connection connection = null;
+            Connection connection;
             try {
                 connection = getDataSource().getConnection();
             } catch (SQLException e) {
@@ -250,26 +302,17 @@ public class SQLiter implements Data {
                 stmt.close();
                 connection.close();
             } catch (SQLException e) {
+                try {
+                    connection.close();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
                 if (!"[SQLITE_ERROR] SQL error or missing database (table \"giftpack\" already exists)".equals(e.getMessage())) {
-                    try {
-                        connection.close();
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
-                    }
                     throw new RuntimeException(e);
                 }
             }
 
-            logger.info("initialization SQLiter table giftpack ok!");
-
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
-
-        logger.info("initialization SQLiter ok!");
 
     }
 

@@ -6,28 +6,15 @@ import ideamc.giftpack.utils.GiftPack;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.UUID;
 
 class Scratch {
-    public static void main(String[] args) {
-        Data data = new SQLiter("C:\\code\\java\\IdeaMC\\Idea\\GiftPack\\src\\main\\resources\\data-test.db");
+    public static void main(String[] args) throws SQLException {
+        SQLiter data = new SQLiter("C:\\code\\java\\IdeaMC\\Idea\\GiftPack\\src\\main\\resources\\data.db");
 
-        data.initialization();
-
-
-        ItemStack itemStack = new ItemStack(Material.GOLDEN_AXE);
-        itemStack.setLore(Collections.singletonList("测试"));
-
-        GiftPack giftPack = new GiftPack("测试礼包",itemStack,UUID.randomUUID());
-        giftPack.getInventory().addItem(itemStack);
-
-        int uid;
-        try {
-            uid = data.saveGiftPack(giftPack);
-        } catch (DataError | SaveDataError e) {
-            throw new RuntimeException(e);
-        }
+        int uid = data.getUID(123);
 
         System.out.println("uid："+ uid);
     }
