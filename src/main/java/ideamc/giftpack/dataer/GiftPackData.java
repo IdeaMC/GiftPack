@@ -21,20 +21,27 @@ import java.util.UUID;
  *     throw new DataError(e);
  * }
  */
-public interface Data {
+public interface GiftPackData {
 
     /**
-     * 通过 GiftPack UID获取
+     * 通过 GiftPack UID获取 GiftPack
      * @param i GiftPack UID
      * @return 可能null
      */
     GiftPack getGiftPack(int i) throws SQLException;
 
     /**
+     * 通过 GiftPack UID获取 GiftPackItemstack
+     * @param i GiftPack UID
+     * @return 可能null
+     */
+    GiftPack getGiftPackItemstack(int i) throws SQLException;
+
+    /**
      * 获取 GiftPack 数量
      * @return 全部
      */
-    int size() throws SQLException, DataError;
+    int size();
 
     /**
      * 获取 creator 创建的 GiftPack

@@ -1,4 +1,4 @@
-package ideamc.giftpack.dataer;
+package ideamc.giftpack.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,7 +13,7 @@ import java.util.Map;
  * GiftPack
  */
 @SuppressWarnings("unchecked")
-public class ItemStackSerializer {
+public class ItemStackSerialiser {
     private final static Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()

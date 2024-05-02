@@ -3,10 +3,10 @@ package ideamc.giftpack;
 import ideamc.giftpack.configs.Config;
 import ideamc.giftpack.configs.ConfigManager;
 import ideamc.giftpack.configs.Lang;
-import ideamc.giftpack.dataer.Data;
+import ideamc.giftpack.dataer.GiftPackData;
 import ideamc.giftpack.dataer.sqlite.SQLiter;
-import ideamc.giftpack.error.DataError;
 import ideamc.giftpack.error.SaveDataError;
+import ideamc.giftpack.gui.Admin;
 import ideamc.giftpack.utils.GiftPack;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -27,7 +27,7 @@ public final class GiftPackMain extends JavaPlugin {
     private static GiftPackMain instance; // 插件实例
     private static ConfigManager<Lang> langConfigManager;
     private static ConfigManager<Config> configConfigManager;
-    private static Data data;
+    private static GiftPackData giftPackData;
     public final static String sign = "GiftPack ";
 
     @Override
@@ -40,8 +40,8 @@ public final class GiftPackMain extends JavaPlugin {
         configConfigManager.reloadConfig();
 
         if ("SQLiter".equals(configConfigManager.getConfigData().storage().method())) {
-            data = new SQLiter();
-            data.initialization();
+            giftPackData = new SQLiter();
+            giftPackData.initialization();
         } else {
             getLogger().severe("unKnow storage method");
             getPluginLoader().disablePlugin(this);
@@ -51,13 +51,13 @@ public final class GiftPackMain extends JavaPlugin {
         pluginManager.registerEvents(new ideamc.giftpack.gui.Admin(),this);
         pluginManager.registerEvents(new ideamc.giftpack.gui.GiftPackList(),this);
 
-        getCommand("giftpack").setExecutor(new GiftPackCommand());
+        ideamc.giftpack.gui.Admin.initialization();
 
-        test();
+        getCommand("giftpack").setExecutor(new GiftPackCommand());
     }
 
     void test() {
-        Data data = new SQLiter();
+        GiftPackData giftPackData = new SQLiter();
 
         ItemStack itemStack = new ItemStack(Material.GOLDEN_AXE);
         itemStack.setLore(Collections.singletonList("测试"));
@@ -67,13 +67,13 @@ public final class GiftPackMain extends JavaPlugin {
 
         int uid;
         try {
-            uid = data.saveGiftPack(giftPack,0);
+            uid = giftPackData.saveGiftPack(giftPack,0);
         } catch (SaveDataError e) {
             throw new RuntimeException(e);
         }
 
         try {
-            GiftPack giftPack2 = data.getGiftPack(uid);
+            GiftPack giftPack2 = giftPackData.getGiftPack(uid);
 
             Thread.sleep(1000);
 
@@ -92,11 +92,11 @@ public final class GiftPackMain extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        data.close();
+        giftPackData.close();
         instance = null;
     }
     public static GiftPackMain getInstance() {return instance;}
     public static Lang getLangConfigManager(){return langConfigManager.getConfigData();}
     public static Config getConfigConfigManager(){return configConfigManager.getConfigData();}
-    public static Data getData() {return data;}
+    public static GiftPackData getData() {return giftPackData;}
 }

@@ -1,6 +1,8 @@
 package ideamc.giftpack.gui;
 
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 
 /**
  * @author xiantiao
@@ -9,6 +11,7 @@ import org.bukkit.event.Listener;
  */
 
 // TODO 礼包列表
-public class GiftPackList implements Listener {
+public class GiftPackList implements Listener, InventoryHolder {
+    @Override public Inventory getInventory() {return null;}
 
 }

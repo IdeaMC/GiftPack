@@ -21,9 +21,15 @@ public class SQLiteJDBC {
             System.out.println("Opened database successfully");
 
             stmt = c.createStatement();
-            String sql = "INSERT INTO main.giftpack (name,material,lore,creator) " +
-                    "VALUES ('name', 'material', 'lore', 'creator');";
-            stmt.executeUpdate(sql);
+
+            ResultSet rs = stmt.executeQuery( "SELECT uid FROM main.giftpack" );
+
+            int size = 0;
+            while (rs.next()) {
+                size++;
+            }
+
+            System.out.println(size);
 
             stmt.close();
             c.commit();
