@@ -60,7 +60,7 @@ public final class GiftPackMain extends JavaPlugin {
         getCommand("giftpack").setExecutor(new GiftPackCommand());
 
         //test();
-        test4();
+        test();
     }
 
     private void test4() {
@@ -75,6 +75,9 @@ public final class GiftPackMain extends JavaPlugin {
         // 将JSON字符串转换回ItemStack对象
         ItemStack newItem1 = ItemStackSerializer.toItemStack(jsonItem1);
         getLogger().info("Deserialized item1: " + newItem1.toString());
+
+
+
 
         // 创建一个ItemStack数组
         ItemStack[] items = {item1, item2};

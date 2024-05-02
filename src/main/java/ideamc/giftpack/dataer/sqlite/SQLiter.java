@@ -77,13 +77,8 @@ public class SQLiter implements Data {
 
         rs.next();
 
-        Gson gson = new GsonBuilder().setPrettyPrinting()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-
-
         String name = rs.getString("name");
-        ItemStack itemStack = ItemStackSerializer.toItemStack(Arrays.toString(gson.fromJson(rs.getString("itemstack"), ArrayList.class).toArray()));
+        ItemStack itemStack = ItemStackSerializer.toItemStack(rs.getString("itemstack"));
         UUID creator = UUID.fromString(rs.getString("creator"));
         ItemStack[] itemStacks = ItemStackSerializer.toItemStacks(rs.getString("inventory"));
 
@@ -93,7 +88,13 @@ public class SQLiter implements Data {
 
         GiftPack giftPack = new GiftPack(name,itemStack,creator);
         giftPack.uid = uid;
-        giftPack.getInventory().addItem(itemStacks);
+
+        int i = 0;
+        while (i<itemStacks.length) {
+            ItemStack itemStack1 = itemStacks[i];
+            if (itemStack1 != null) giftPack.getInventory().addItem(itemStack1);
+            i++;
+        }
         return giftPack;
     }
 
@@ -190,9 +191,9 @@ public class SQLiter implements Data {
             String sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, giftPack.displayName);
-            preparedStatement.setString(2, giftPack.displayItemStack.toString());
+            preparedStatement.setString(2, ItemStackSerializer.toJson(giftPack.displayItemStack));
             preparedStatement.setString(3, giftPack.creator.toString());
-            preparedStatement.setString(4, gson.toJson(ItemStackSerializer.toJson(giftPack.getInventory().getContents()))); // 假设 json 是你的 JSON 数据
+            preparedStatement.setString(4, ItemStackSerializer.toJson(giftPack.getInventory().getContents())); // 假设 json 是你的 JSON 数据
             preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
 
             preparedStatement.executeUpdate(); // 执行插入操作
