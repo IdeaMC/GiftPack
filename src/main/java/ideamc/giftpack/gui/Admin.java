@@ -17,8 +17,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author 40482
+ */
 public class Admin implements InventoryHolder, Listener {
-    private Inventory inventory;
+    private final Inventory inventory;
     private final Lang.GuiTitle.Admin lang = GiftPackMain.getLangConfigManager().gui().admin();
 
     private final ItemStack PACK_MANAGE = new ItemStack(Material.CHEST);

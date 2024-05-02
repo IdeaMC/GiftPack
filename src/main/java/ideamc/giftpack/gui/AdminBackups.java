@@ -3,6 +3,7 @@ package ideamc.giftpack.gui;
 import ideamc.giftpack.GiftPackMain;
 import ideamc.giftpack.configs.Lang;
 import ideamc.giftpack.utils.PAPI;
+import jdk.jfr.Unsigned;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,7 +18,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author 40482
+ */
 @Deprecated
+@Unsigned
 public class AdminBackups implements InventoryHolder, Listener {
     private static Inventory inventory;
     private static final Lang.GuiTitle.Admin lang = GiftPackMain.getLangConfigManager().gui().admin();
