@@ -53,7 +53,7 @@ public final class GiftPackMain extends JavaPlugin {
         pluginManager.registerEvents(new ideamc.giftpack.gui.Admin(),this);
         pluginManager.registerEvents(new ideamc.giftpack.gui.GiftPackList(),this);
 
-        ideamc.giftpack.gui.Admin.initialization();
+        ideamc.giftpack.gui.Admin.initialize();
 
         getCommand("giftpack").setExecutor(new GiftPackCommand());
     }

@@ -14,90 +14,70 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.sql.Time;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static ideamc.giftpack.GiftPackMain.getInstance;
-import static ideamc.giftpack.GiftPackMain.sign;
-
-/**
- * @author xiantiao
- * @date 2024/4/27
- * GiftPack
- */
-
-// TODO 重写Lang，支持configReload
 public class Admin implements InventoryHolder, Listener {
+    private static Inventory inventory;
+    private static final Lang.GuiTitle.Admin lang = GiftPackMain.getLangConfigManager().gui().admin();
+
+    private static final ItemStack PACK_MANAGE = new ItemStack(Material.CHEST);
+    private static final ItemStack CREATE_PACK = new ItemStack(Material.REDSTONE_TORCH);
+    private static final ItemStack MY_PACKS = new ItemStack(Material.NETHER_STAR);
+    private static final ItemStack FILLER = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+
+    private static final int SLOT_PACK_MANAGE = 11; // Adjust as needed
+    private static final int SLOT_CREATE_PACK = 13; // Adjust as needed
+    private static final int SLOT_MY_PACKS = 15; // Adjust as needed
+
+
     @Override public Inventory getInventory() {return null;}
 
-    public static void initialization() {        lang = GiftPackMain.getLangConfigManager().gui().admin();
+    public static void initialize() {
+        setDisplayName(lang.PackManage().name(), PACK_MANAGE);
+        setDisplayName(lang.CreatePack().name(), CREATE_PACK);
+        setDisplayName(lang.MyPacks().name(), MY_PACKS);
+        setDisplayName(" ", FILLER);
 
-        inventory = Bukkit.createInventory(new Admin(),54, lang.title());
+        inventory = Bukkit.createInventory(new Admin(), 54, lang.title());
 
-        inventory.setItem(
-                Item.slotPackManage, Item.packManage
-        );
-        inventory.setItem(
-                Item.slotCreatePack, Item.createPack
-        );
-        inventory.setItem(
-                Item.slotMyPacks, Item.myPacks
-        );
+        inventory.setItem(SLOT_PACK_MANAGE, PACK_MANAGE);
+        inventory.setItem(SLOT_CREATE_PACK, CREATE_PACK);
+        inventory.setItem(SLOT_MY_PACKS, MY_PACKS);
 
-        int i = 0;
-        while (i < inventory.getSize()) {
+        for (int i = 0; i < inventory.getSize(); i++) {
             if (inventory.getItem(i) == null) {
-                inventory.setItem(i, Item.fill);
+                inventory.setItem(i, FILLER);
             }
-            i++;
         }
     }
 
-    // Admin GUI
-    private static Inventory inventory;
-
-    private static ideamc.giftpack.configs.Lang.GuiTitle.Admin lang;
-
     @EventHandler
-    public void a(InventoryClickEvent event) {
-        Inventory inventory = event.getClickedInventory();
+    public void onInventoryClick(InventoryClickEvent event) {
+        Inventory clickedInventory = event.getClickedInventory();
 
-        if (!(inventory.getHolder() instanceof Admin)) return;
+        if (!(clickedInventory.getHolder() instanceof Admin)) return;
 
         event.setCancelled(true);
 
         Player player = (Player) event.getWhoClicked();
-        player.sendMessage("inventory!");
+        player.sendMessage("Inventory!");
     }
 
     public static void open(Player player) {
-        inventory.getItem(Item.slotPackManage).setLore(lang.PackManage().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
-        inventory.getItem(Item.slotCreatePack).setLore(lang.CreatePack().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
-        inventory.getItem(Item.slotMyPacks).setLore(lang.MyPacks().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
+        setLore(inventory.getItem(SLOT_PACK_MANAGE), lang.PackManage().lore());
+        setLore(inventory.getItem(SLOT_CREATE_PACK), lang.CreatePack().lore());
+        setLore(inventory.getItem(SLOT_MY_PACKS), lang.MyPacks().lore());
 
         player.openInventory(inventory);
     }
 
-    static class Item {
-        static ItemStack packManage = new ItemStack(lang.PackManage().material());
-        static ItemStack createPack = new ItemStack(Material.REDSTONE_TORCH);
-        static ItemStack myPacks = new ItemStack(Material.NETHER_STAR);
-        static ItemStack fill = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
-
-        static {
-            setDisplayName(lang.PackManage().name(),packManage);
-            setDisplayName(lang.CreatePack().name(), createPack);
-            setDisplayName(lang.MyPacks().name(),myPacks);
-            setDisplayName(" ",fill);
-        }
-
-        static int slotPackManage = lang.PackManage().slot();
-        static int slotCreatePack = lang.CreatePack().slot();
-        static int slotMyPacks = lang.MyPacks().slot();
+    private static void setLore(ItemStack itemStack, List<String> lore) {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.setLore(lore.stream().map(PAPI::to).collect(Collectors.toList()));
+        itemStack.setItemMeta(itemMeta);
     }
-    static void setDisplayName(String displayName, ItemStack itemStack) {
+    private static void setDisplayName(String displayName, ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.setDisplayName(displayName);
         itemStack.setItemMeta(itemMeta);

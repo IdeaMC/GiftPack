@@ -29,7 +29,7 @@ public interface Lang {
 
         @SubSection
         interface Admin {
-            @ConfDefault.DefaultStrings("GiftPack - admin")
+            @ConfDefault.DefaultString("GiftPack - admin")
             @ConfComments("# admin主界面标题名字")
             @AnnotationBasedSorter.Order(100)
             String title();
@@ -40,7 +40,7 @@ public interface Lang {
             @SubSection
             interface PackManage {
                 @AnnotationBasedSorter.Order(100)
-                @ConfDefault.DefaultStrings("全部礼包")
+                @ConfDefault.DefaultString("全部礼包")
                 String name();
                 @AnnotationBasedSorter.Order(110)
                 @ConfDefault.DefaultString("GOLDEN_AXE")
@@ -48,9 +48,6 @@ public interface Lang {
                 @AnnotationBasedSorter.Order(120)
                 @ConfDefault.DefaultStrings({"当前一共有 %giftpack_all_size% 个礼包", " ", "点击我管理礼包"})
                 List<String> lore();
-                @AnnotationBasedSorter.Order(130)
-                @ConfDefault.DefaultInteger(11)
-                int slot();
             }
 
 
@@ -60,7 +57,7 @@ public interface Lang {
             @SubSection
             interface CreatePack {
                 @AnnotationBasedSorter.Order(100)
-                @ConfDefault.DefaultStrings("创建礼包")
+                @ConfDefault.DefaultString("创建礼包")
                 String name();
                 @AnnotationBasedSorter.Order(110)
                 @ConfDefault.DefaultString("REDSTONE_TORCH")
@@ -68,9 +65,6 @@ public interface Lang {
                 @AnnotationBasedSorter.Order(120)
                 @ConfDefault.DefaultStrings({"当前一共有 %giftpack_all_size% 个礼包", " ", "点击我创建一个新的礼包"})
                 List<String> lore();
-                @AnnotationBasedSorter.Order(130)
-                @ConfDefault.DefaultInteger(13)
-                int slot();
             }
 
 
@@ -80,7 +74,7 @@ public interface Lang {
             @SubSection
             interface MyPacks {
                 @AnnotationBasedSorter.Order(100)
-                @ConfDefault.DefaultStrings("我的礼包")
+                @ConfDefault.DefaultString("我的礼包")
                 String name();
                 @AnnotationBasedSorter.Order(110)
                 @ConfDefault.DefaultString("NETHER_STAR")
@@ -88,9 +82,6 @@ public interface Lang {
                 @AnnotationBasedSorter.Order(120)
                 @ConfDefault.DefaultStrings({"我的礼包"})
                 List<String> lore();
-                @AnnotationBasedSorter.Order(130)
-                @ConfDefault.DefaultInteger(15)
-                int slot();
             }
         }
     }
