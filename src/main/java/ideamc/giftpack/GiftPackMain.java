@@ -7,7 +7,7 @@ import ideamc.giftpack.configs.Config;
 import ideamc.giftpack.configs.ConfigManager;
 import ideamc.giftpack.configs.Lang;
 import ideamc.giftpack.dataer.Data;
-import ideamc.giftpack.dataer.OptionalTypeAdapter;
+import ideamc.giftpack.dataer.ItemStackSerializer;
 import ideamc.giftpack.dataer.sqlite.SQLiter;
 import ideamc.giftpack.error.DataError;
 import ideamc.giftpack.error.SaveDataError;
@@ -23,6 +23,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * @author xiantiao
@@ -59,11 +60,38 @@ public final class GiftPackMain extends JavaPlugin {
         getCommand("giftpack").setExecutor(new GiftPackCommand());
 
         //test();
-        test3();
+        test4();
+    }
+
+    private void test4() {
+        // 创建一些示例的ItemStack对象
+        ItemStack item1 = new ItemStack(Material.DIAMOND_SWORD);
+        ItemStack item2 = new ItemStack(Material.GOLDEN_APPLE, 3);
+
+        // 将单个ItemStack转换为JSON字符串
+        String jsonItem1 = ItemStackSerializer.toJson(item1);
+        getLogger().info("JSON representation of item1: " + jsonItem1);
+        
+        // 将JSON字符串转换回ItemStack对象
+        ItemStack newItem1 = ItemStackSerializer.toItemStack(jsonItem1);
+        getLogger().info("Deserialized item1: " + newItem1.toString());
+
+        // 创建一个ItemStack数组
+        ItemStack[] items = {item1, item2};
+
+        // 将ItemStack数组转换为JSON字符串
+        String jsonItems = ItemStackSerializer.toJson(items);
+        getLogger().info("JSON representation of items array: " + jsonItems);
+
+        // 将JSON字符串转换回ItemStack数组
+        ItemStack[] newItems = ItemStackSerializer.toItemStacks(jsonItems);
+        for (ItemStack item : newItems) {
+            getLogger().info("Deserialized item from items array: " + item.toString());
+        }
     }
 
 
-    public static void test3() {
+    public void test3() {
         // 注册 ItemStack 类以便 Bukkit API 可以识别它
         ConfigurationSerialization.registerClass(ItemStack.class);
 
@@ -79,15 +107,15 @@ public final class GiftPackMain extends JavaPlugin {
         String json = gson.toJson(serializeItemStackArray(originalItems));
 
         // 输出 JSON 字符串
-        System.out.println("Serialized ItemStack Array: " + json);
+        getLogger().info("Serialized ItemStack Array: " + json);
 
         // 从 JSON 字符串中恢复 ItemStack[]
         ItemStack[] deserializedItems = deserializeItemStackArray(gson.fromJson(json, ArrayList.class).toArray());
 
         // 输出恢复后的 ItemStack[]
-        System.out.println("Deserialized ItemStack Array:");
+        getLogger().info("Deserialized ItemStack Array:");
         for (ItemStack item : deserializedItems) {
-            System.out.println(item);
+            getLogger().info((Supplier<String>) item);
         }
     }
 
@@ -132,9 +160,6 @@ public final class GiftPackMain extends JavaPlugin {
 
         getLogger().info("json "+json);
 
-
-
-
         String[] object = gson.fromJson(json,String[].class);
         Inventory inventory1 = Bukkit.createInventory(null,54,"test");
         ConfigurationSerialization.registerClass(ItemStack.class);
@@ -159,18 +184,6 @@ public final class GiftPackMain extends JavaPlugin {
         GiftPack giftPack = new GiftPack("测试礼包",itemStack, UUID.randomUUID());
         giftPack.getInventory().addItem(itemStack);
 
-
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        // 将自定义的 TypeAdapter 注册到 GsonBuilder 中
-        gsonBuilder.registerTypeAdapter(Optional.class, new OptionalTypeAdapter());
-        // 创建 Gson 对象
-        Gson gson = gsonBuilder.create();
-        String json = gson.toJson(giftPack.getInventory());
-        getLogger().info(json);
-
-        reloadConfig();
-        getConfig().get("");
-
         int uid;
         try {
             uid = data.saveGiftPack(giftPack);
@@ -181,15 +194,17 @@ public final class GiftPackMain extends JavaPlugin {
         try {
             GiftPack giftPack2 = data.getGiftPack(uid);
 
+            Thread.sleep(1000);
+
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 onlinePlayer.openInventory(giftPack2.getInventory());
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException | InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        System.out.println("uid："+ uid);
+        getLogger().info("uid："+ uid);
     }
 
 

@@ -6,22 +6,15 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ideamc.giftpack.GiftPackMain;
 import ideamc.giftpack.dataer.Data;
-import ideamc.giftpack.dataer.OptionalTypeAdapter;
+import ideamc.giftpack.dataer.ItemStackSerializer;
 import ideamc.giftpack.error.DataError;
-import ideamc.giftpack.error.SaveDataError;
 import ideamc.giftpack.utils.GiftPack;
-import org.bukkit.Bukkit;
-import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.logging.Logger;
+import java.util.*;
 
 /**
  * @author xiantiao
@@ -84,29 +77,15 @@ public class SQLiter implements Data {
 
         rs.next();
 
-
-
-
-        // 创建一个 GsonBuilder
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        // 将自定义的 TypeAdapter 注册到 GsonBuilder 中
-        gsonBuilder.registerTypeAdapter(Optional.class, new OptionalTypeAdapter());
-        // 创建 Gson 对象
-        Gson gson = gsonBuilder.create();
-
+        Gson gson = new GsonBuilder().setPrettyPrinting()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
 
 
         String name = rs.getString("name");
-        ItemStack itemStack = gson.fromJson(rs.getString("itemStack"), ItemStack.class);
+        ItemStack itemStack = ItemStackSerializer.toItemStack(Arrays.toString(gson.fromJson(rs.getString("itemstack"), ArrayList.class).toArray()));
         UUID creator = UUID.fromString(rs.getString("creator"));
-        //Map<Integer, ItemStack> integerItemStackMap = new Gson().fromJson(rs.getString("inventory"), Map.class);
-        Inventory inventory = gson.fromJson(rs.getString("inventory"), Inventory.class);
-
-        //Inventory inventory = Bukkit.createInventory(null,54,"GiftPack - "+name);
-        //for (Integer integer : integerItemStackMap.keySet()) {
-        //    inventory.setItem(integer,integerItemStackMap.get(integer));
-        //}
-
+        ItemStack[] itemStacks = ItemStackSerializer.toItemStacks(rs.getString("inventory"));
 
         stmt.close();
         connection.commit();
@@ -114,7 +93,7 @@ public class SQLiter implements Data {
 
         GiftPack giftPack = new GiftPack(name,itemStack,creator);
         giftPack.uid = uid;
-        giftPack.getInventory().addItem(inventory.getContents());
+        giftPack.getInventory().addItem(itemStacks);
         return giftPack;
     }
 
@@ -203,19 +182,17 @@ public class SQLiter implements Data {
         try {
             connection.setAutoCommit(false); // 关闭自动提交模式
 
-            // 创建一个 GsonBuilder
-            GsonBuilder gsonBuilder = new GsonBuilder();
-            // 将自定义的 TypeAdapter 注册到 GsonBuilder 中
-            gsonBuilder.registerTypeAdapter(Optional.class, new OptionalTypeAdapter());
-            // 创建 Gson 对象
-            Gson gson = gsonBuilder.create();
+            Gson gson = new GsonBuilder().setPrettyPrinting()
+                    .excludeFieldsWithoutExposeAnnotation()
+                    .setPrettyPrinting().disableHtmlEscaping()
+                    .create();
 
             String sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, giftPack.displayName);
-            preparedStatement.setString(2, gson.toJson(giftPack.displayItemStack));
-            preparedStatement.setString(3, gson.toJson(giftPack.creator));
-            preparedStatement.setString(4, gson.toJson(giftPack.getInventory())); // 假设 json 是你的 JSON 数据
+            preparedStatement.setString(2, giftPack.displayItemStack.toString());
+            preparedStatement.setString(3, giftPack.creator.toString());
+            preparedStatement.setString(4, gson.toJson(ItemStackSerializer.toJson(giftPack.getInventory().getContents()))); // 假设 json 是你的 JSON 数据
             preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
 
             preparedStatement.executeUpdate(); // 执行插入操作
