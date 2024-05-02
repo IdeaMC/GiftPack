@@ -1,7 +1,5 @@
 package ideamc.giftpack.dataer.sqlite;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ideamc.giftpack.GiftPackMain;
@@ -9,12 +7,11 @@ import ideamc.giftpack.dataer.Data;
 import ideamc.giftpack.dataer.ItemStackSerializer;
 import ideamc.giftpack.error.DataError;
 import ideamc.giftpack.utils.GiftPack;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.*;
+import java.util.UUID;
 
 /**
  * @author xiantiao
@@ -24,7 +21,6 @@ import java.util.*;
 public class SQLiter implements Data {
     private static final GiftPackMain instance = GiftPackMain.getInstance();
     private static final String TABLE_giftpack;
-    //private final String dbFile;
     private DataSource dataSource;
     public DataSource getDataSource() {
         return dataSource;
@@ -70,10 +66,7 @@ public class SQLiter implements Data {
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, String.valueOf(uid));
 
-
         ResultSet rs = preparedStatement.executeQuery();
-        System.out.println("executeQuery "+uid);
-        System.out.println(rs.getFetchSize());
 
         rs.next();
 
@@ -92,7 +85,7 @@ public class SQLiter implements Data {
         int i = 0;
         while (i<itemStacks.length) {
             ItemStack itemStack1 = itemStacks[i];
-            if (itemStack1 != null) giftPack.getInventory().addItem(itemStack1);
+            if (itemStack1 != null) giftPack.getInventory().setItem(i,itemStack1);
             i++;
         }
         return giftPack;
@@ -130,7 +123,7 @@ public class SQLiter implements Data {
     public int size(UUID uuid) throws DataError {
         Statement stmt;
         ResultSet rs;
-        Connection connection = null;
+        Connection connection;
         try {
             connection = getDataSource().getConnection();
         } catch (SQLException e) {
@@ -159,18 +152,7 @@ public class SQLiter implements Data {
     }
 
     @Override
-    public int saveGiftPack(GiftPack giftPack) {
-        Map<Integer, ItemStack> intTtemMap = new HashMap<>();
-        Inventory giftPackInventory = giftPack.getInventory();
-
-        int i = 0;
-        for (ItemStack itemStack : giftPackInventory.getContents()) {
-            if (itemStack != null) {
-                intTtemMap.put(i,itemStack);
-            }
-            i++;
-        }
-
+    public int saveGiftPack(GiftPack giftPack, int uid) {
         final long timeMillis = System.currentTimeMillis();
 
         Connection connection;
@@ -183,22 +165,29 @@ public class SQLiter implements Data {
         try {
             connection.setAutoCommit(false); // 关闭自动提交模式
 
-            Gson gson = new GsonBuilder().setPrettyPrinting()
-                    .excludeFieldsWithoutExposeAnnotation()
-                    .setPrettyPrinting().disableHtmlEscaping()
-                    .create();
 
-            String sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, giftPack.displayName);
-            preparedStatement.setString(2, ItemStackSerializer.toJson(giftPack.displayItemStack));
-            preparedStatement.setString(3, giftPack.creator.toString());
-            preparedStatement.setString(4, ItemStackSerializer.toJson(giftPack.getInventory().getContents())); // 假设 json 是你的 JSON 数据
-            preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
+            String sql;
+            PreparedStatement preparedStatement;
+            if (uid < 1) {
+                sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, giftPack.displayName);
+                preparedStatement.setString(2, ItemStackSerializer.toJson(giftPack.displayItemStack));
+                preparedStatement.setString(3, giftPack.creator.toString());
+                preparedStatement.setString(4, ItemStackSerializer.toJson(giftPack.getInventory().getContents())); // 假设 json 是你的 JSON 数据
+                preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
+            } else {
+                sql = "INSERT INTO main.giftpack (\"uid\", name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?, ?)";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, String.valueOf(uid));
+                preparedStatement.setString(2, giftPack.displayName);
+                preparedStatement.setString(3, ItemStackSerializer.toJson(giftPack.displayItemStack));
+                preparedStatement.setString(4, giftPack.creator.toString());
+                preparedStatement.setString(5, ItemStackSerializer.toJson(giftPack.getInventory().getContents())); // 假设 json 是你的 JSON 数据
+                preparedStatement.setLong(6, timeMillis); // 假设 timeMillis 是你的时间戳
+            }
 
             preparedStatement.executeUpdate(); // 执行插入操作
-
-            System.out.println("executeUpdate "+timeMillis);
 
             connection.commit(); // 提交事务
 
@@ -223,14 +212,12 @@ public class SQLiter implements Data {
             throw new RuntimeException(e);
         }
 
-        try {
-            return getUID(timeMillis);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        if (uid < 1) {
+            return getUid(timeMillis);
+        } return uid;
     }
     
-    public int getUID(long timeMillis) throws SQLException {
+    private int getUid(long timeMillis) {
         Connection connection;
         try {
             connection = getDataSource().getConnection();
@@ -238,39 +225,27 @@ public class SQLiter implements Data {
             throw new RuntimeException(e);
         }
 
-        Statement stmt = connection.createStatement();
-        connection.setAutoCommit(false);
-        String sql = "SELECT * FROM giftpack WHERE time = ?";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, String.valueOf(timeMillis));
+        try {
+            Statement stmt = connection.createStatement();
+            connection.setAutoCommit(false);
+            String sql = "SELECT * FROM giftpack WHERE time = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, String.valueOf(timeMillis));
 
 
-        ResultSet rs = preparedStatement.executeQuery();
-        System.out.println("executeQuery "+timeMillis);
-        System.out.println(rs.getFetchSize());
+            ResultSet rs = preparedStatement.executeQuery();
 
-        while (rs.next()) {
+            rs.next();
+
             // 处理查询结果
             int uid = rs.getInt("uid");
-            System.out.println("Found data with id " + uid);
-            stmt.close();
             connection.commit();
             connection.close();
+            stmt.close();
             return uid;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        connection.commit();
-
-        stmt.close();
-        connection.commit();
-        connection.close();
-
-        return 0;
-    }
-
-    @Override
-    public void saveGiftPack(GiftPack giftPack, int uid) {
-
     }
 
     @Override
@@ -305,31 +280,9 @@ public class SQLiter implements Data {
 
     }
 
-
-
     @Override
     public void close() {
-
-    }
-
-    /**
-     * 将对象序列化为 JSON 字符串
-     * @param obj 要序列化的对象
-     * @return 对象的 JSON 字符串表示形式
-     */
-    public static String toJson(Object obj) {
-        return new Gson().toJson(obj);
-    }
-
-    /**
-     * 将 JSON 字符串反序列化为对象
-     * @param json JSON 字符串
-     * @param clazz 对象的类类型
-     * @param <T> 对象的类型
-     * @return JSON 字符串表示的对象
-     */
-    public static <T> T fromJson(String json, Class<T> clazz) {
-        return new Gson().fromJson(json, clazz);
+        dataSource = null;
     }
 }
 

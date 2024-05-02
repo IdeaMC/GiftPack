@@ -4,9 +4,7 @@ import ideamc.giftpack.error.DataError;
 import ideamc.giftpack.error.SaveDataError;
 import ideamc.giftpack.utils.GiftPack;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -46,25 +44,13 @@ public interface Data {
     int size(UUID uuid) throws DataError;
 
     /**
-     * 保存新的GiftPack到数据库
-     * @param giftPack
-     * @return 该GiftPack分配的UID，返回0
-     */
-    int saveGiftPack(GiftPack giftPack) throws DataError, SaveDataError;
-
-    /**
-     * 覆盖某个uid的GiftPack
+     * 保存GiftPack
      * @param giftPack 礼包
-     * @param uid 可以是不存在的uid
+     * @param uid 为0时分配新的uid
      */
-    void saveGiftPack(GiftPack giftPack, int uid) throws SaveDataError;
+    int saveGiftPack(GiftPack giftPack, int uid) throws SaveDataError;
 
     void initialization();
 
     void close();
-
-    static String base64(String input) {
-        if (input == null) return null;
-        return Base64.getEncoder().encodeToString(input.getBytes(StandardCharsets.UTF_8));
-    }
 }

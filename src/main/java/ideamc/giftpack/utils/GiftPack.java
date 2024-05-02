@@ -33,20 +33,6 @@ public class GiftPack {
         this.inventory = Bukkit.createInventory(null,54,"ideamc.giftpack.utils.GiftPack");
     }
 
-//    /**
-//     *
-//     * @param inventory
-//     * @param displayName
-//     * @param creator
-//     * @param displayItemStack
-//     */
-//    public GiftPack(Inventory inventory, String displayName, UUID creator, ItemStack displayItemStack) {
-//        this.displayName = displayName;
-//        this.creator = creator;
-//        this.displayItemStack = displayItemStack;
-//        this.inventory = Bukkit.createInventory(null,54,"ideamc.giftpack.utils.GiftPack");
-//        this.inventory.addItem(inventory.getContents());
-//    }
     public Inventory getInventory() {
         return inventory;
     }

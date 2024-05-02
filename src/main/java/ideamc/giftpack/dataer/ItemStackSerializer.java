@@ -12,10 +12,12 @@ import java.util.Map;
  * @date 2024/5/2
  * GiftPack
  */
+@SuppressWarnings("unchecked")
 public class ItemStackSerializer {
     private final static Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()
+            .setPrettyPrinting().disableHtmlEscaping()
             .create();
 
     public static String toJson(ItemStack[] itemStacks) {
