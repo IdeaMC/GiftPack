@@ -13,13 +13,12 @@ import org.bukkit.entity.Player;
 public class GiftPackCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        if (!(sender instanceof Player) || args.length == 0) { sender.sendMessage("GiftPack by IdeaMC"); return true;}
-        Player player = (Player) sender;
+        if (!(sender instanceof Player player) || args.length == 0) { sender.sendMessage("GiftPack by IdeaMC"); return true;}
 
         if (args.length == 1) {
 
             if ("admin".equalsIgnoreCase(args[0])) {
-                ideamc.giftpack.gui.Admin.open(player);
+                new ideamc.giftpack.gui.Admin().open(player);
             }
 
             return true;
