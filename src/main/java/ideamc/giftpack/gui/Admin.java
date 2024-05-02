@@ -74,6 +74,8 @@ public class Admin implements InventoryHolder, Listener {
 
     public static void open(Player player) {
         inventory.getItem(Item.slotPackManage).setLore(lang.PackManage().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
+        inventory.getItem(Item.slotCreatePack).setLore(lang.CreatePack().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
+        inventory.getItem(Item.slotMyPacks).setLore(lang.MyPacks().lore().stream().map(PAPI::to).toList()); // 使用PAPI.to处理每个文字
 
         player.openInventory(inventory);
     }
@@ -86,14 +88,14 @@ public class Admin implements InventoryHolder, Listener {
 
         static {
             setDisplayName(lang.PackManage().name(),packManage);
-            setDisplayName("创建礼包",createPack);
-            setDisplayName("我的礼包",myPacks);
+            setDisplayName(lang.CreatePack().name(), createPack);
+            setDisplayName(lang.MyPacks().name(),myPacks);
             setDisplayName(" ",fill);
         }
 
         static int slotPackManage = lang.PackManage().slot();
-        static int slotCreatePack = 13;
-        static int slotMyPacks = 15;
+        static int slotCreatePack = lang.CreatePack().slot();
+        static int slotMyPacks = lang.MyPacks().slot();
     }
     static void setDisplayName(String displayName, ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();

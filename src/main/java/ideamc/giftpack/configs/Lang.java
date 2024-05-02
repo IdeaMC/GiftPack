@@ -52,6 +52,46 @@ public interface Lang {
                 @ConfDefault.DefaultInteger(11)
                 int slot();
             }
+
+
+            @AnnotationBasedSorter.Order(110)
+            CreatePack CreatePack();
+
+            @SubSection
+            interface CreatePack {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultStrings("创建礼包")
+                String name();
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("REDSTONE_TORCH")
+                Material material();
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"当前一共有 %giftpack_all_size% 个礼包", " ", "点击我创建一个新的礼包"})
+                List<String> lore();
+                @AnnotationBasedSorter.Order(130)
+                @ConfDefault.DefaultInteger(13)
+                int slot();
+            }
+
+
+            @AnnotationBasedSorter.Order(110)
+            MyPacks MyPacks();
+
+            @SubSection
+            interface MyPacks {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultStrings("我的礼包")
+                String name();
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("NETHER_STAR")
+                Material material();
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"我的礼包"})
+                List<String> lore();
+                @AnnotationBasedSorter.Order(130)
+                @ConfDefault.DefaultInteger(15)
+                int slot();
+            }
         }
     }
 }
