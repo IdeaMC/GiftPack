@@ -11,6 +11,8 @@ import ideamc.giftpack.utils.GiftPack;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -99,4 +101,5 @@ public final class GiftPackMain extends JavaPlugin {
     public static Lang getLangConfigManager(){return langConfigManager.getConfigData();}
     public static Config getConfigConfigManager(){return configConfigManager.getConfigData();}
     public static GiftPackData getData() {return giftPackData;}
+
 }

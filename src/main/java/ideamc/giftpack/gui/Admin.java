@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static ideamc.giftpack.GiftPackMain.getInstance;
 import static ideamc.giftpack.GiftPackMain.sign;
 
 /**
@@ -28,11 +29,10 @@ import static ideamc.giftpack.GiftPackMain.sign;
  */
 
 // TODO 重写Lang，支持configReload
-public class Admin implements Listener, InventoryHolder {
+public class Admin implements InventoryHolder, Listener {
     @Override public Inventory getInventory() {return null;}
 
-    public static void initialization() {
-        lang = GiftPackMain.getLangConfigManager().gui().admin();
+    public static void initialization() {        lang = GiftPackMain.getLangConfigManager().gui().admin();
 
         inventory = Bukkit.createInventory(new Admin(),54, lang.title());
 
@@ -53,7 +53,6 @@ public class Admin implements Listener, InventoryHolder {
             }
             i++;
         }
-        Item.initialization();
     }
 
     // Admin GUI
@@ -85,7 +84,7 @@ public class Admin implements Listener, InventoryHolder {
         static ItemStack myPacks = new ItemStack(Material.NETHER_STAR);
         static ItemStack fill = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
 
-        static void initialization() {
+        static {
             setDisplayName(lang.PackManage().name(),packManage);
             setDisplayName("创建礼包",createPack);
             setDisplayName("我的礼包",myPacks);
