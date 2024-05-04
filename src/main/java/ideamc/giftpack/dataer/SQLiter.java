@@ -59,8 +59,9 @@ public class SQLiter implements GiftPackData {
 
     @Override
     public GiftPack getGiftPack(int uid) {
+        Connection connection = null;
         try {
-            Connection connection = getDataSource().getConnection();
+            connection = getDataSource().getConnection();
 
             Statement stmt = connection.createStatement();
             connection.setAutoCommit(false);
@@ -101,13 +102,23 @@ public class SQLiter implements GiftPackData {
             return giftPack;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public ItemStack getDisplayItemstackOfUid(int uid){
+        Connection connection = null;
         try {
-            Connection connection = getDataSource().getConnection();
+            connection = getDataSource().getConnection();
 
             connection.setAutoCommit(false);
             String sql = "SELECT itemstack FROM giftpack WHERE uid = ?";
@@ -126,6 +137,15 @@ public class SQLiter implements GiftPackData {
             return itemStack;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -134,9 +154,8 @@ public class SQLiter implements GiftPackData {
         if (quantity <= 0) throw new IllegalArgumentException("quantity can not be 0 or less than 0");
         if (startUid < 0) throw new IllegalArgumentException("start can not less than 0");
 
-        Connection connection;
+        Connection connection = null;
         PreparedStatement preparedStatement;
-
         try {
             connection = getDataSource().getConnection();
             connection.setAutoCommit(false);
@@ -166,13 +185,23 @@ public class SQLiter implements GiftPackData {
             return giftList.toArray(new Gift[0]);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public int size() {
+        Connection connection = null;
         try {
-            Connection connection = getDataSource().getConnection();
+            connection = getDataSource().getConnection();
 
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery( "SELECT uid FROM main.giftpack" );
@@ -182,20 +211,27 @@ public class SQLiter implements GiftPackData {
                 size++;
             }
 
-            stmt.close();
-            rs.close();
             connection.close();
             return size;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public int size(UUID uuid) throws DataError {
-        Statement stmt;
         ResultSet rs;
         Connection connection;
+        int size;
         try {
             connection = getDataSource().getConnection();
         } catch (SQLException e) {
@@ -206,93 +242,113 @@ public class SQLiter implements GiftPackData {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, uuid.toString());
             rs = preparedStatement.executeQuery();
-        } catch (SQLException e) {
-            throw new DataError(e);
-        }
-
-        int size;
-        try {
             size = rs.getFetchSize();
             connection.close();
         } catch (SQLException e) {
             throw new DataError(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return size;
     }
 
     @Override
     public int saveGiftPack(GiftPack giftPack, int uid) {
-        final long timeMillis = System.currentTimeMillis();
-
-        Connection connection;
-        try {
-            connection = getDataSource().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (uid > 0) {
+            upload(uid,giftPack);
+            return uid;
         }
 
+        final long timeMillis = System.currentTimeMillis();
+        Connection connection = null;
         try {
+            connection = getDataSource().getConnection();
             connection.setAutoCommit(false); // 关闭自动提交模式
 
-
-            String sql;
-            PreparedStatement preparedStatement;
-            if (uid < 1) {
-                sql = "INSERT INTO main.giftpack (itemstack, creator, inventory, time) VALUES (?, ?, ?, ?)";
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
-                preparedStatement.setString(2, giftPack.getCreator().toString());
-                preparedStatement.setString(3, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
-                preparedStatement.setLong(4, timeMillis); // 假设 timeMillis 是你的时间戳
-            } else {
-                sql = "INSERT INTO main.giftpack (\"uid\", itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, String.valueOf(uid));
-                preparedStatement.setString(2, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
-                preparedStatement.setString(3, giftPack.getCreator().toString());
-                preparedStatement.setString(4, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
-                preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
-            }
+            String sql = "INSERT INTO main.giftpack (\"uid\", itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, uid);
+            preparedStatement.setString(2, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
+            preparedStatement.setString(3, giftPack.getCreator().toString());
+            preparedStatement.setString(4, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
+            preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
 
             preparedStatement.executeUpdate(); // 执行插入操作
 
             connection.commit(); // 提交事务
 
-            preparedStatement.close();
-        } catch (SQLException e) {
-            try {
-                connection.rollback(); // 回滚事务
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            throw new RuntimeException(e); // 抛出运行时异常
-        } finally {
-            try {
-                connection.setAutoCommit(true); // 恢复自动提交模式
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }
-        try {
             connection.close();
         } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             throw new RuntimeException(e);
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
 
-        if (uid < 1) {
-            return getUid(timeMillis);
-        } return uid;
+        return getUid(timeMillis);
+    }
+    private void upload(int uid, GiftPack giftPack) {
+        Connection connection = null;
+        try {
+            connection = getDataSource().getConnection();
+            connection.setAutoCommit(false); // 关闭自动提交模式
+
+
+            String sql = "UPDATE \"main\".\"giftpack\" SET \"itemstack\" = ?, \"creator\" = ?, \"inventory\" = ? WHERE uid = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
+            preparedStatement.setString(2,giftPack.getCreator().toString());
+            preparedStatement.setObject(3,ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents()));
+            preparedStatement.setInt(4,uid);
+
+            preparedStatement.executeUpdate(); // 执行插入操作
+
+            connection.commit(); // 提交事务
+
+            connection.close();
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     
     private int getUid(long timeMillis) {
-        Connection connection;
+        Connection connection = null;
         try {
             connection = getDataSource().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
             Statement stmt = connection.createStatement();
             connection.setAutoCommit(false);
             String sql = "SELECT uid FROM giftpack WHERE time = ?";
@@ -312,14 +368,21 @@ public class SQLiter implements GiftPackData {
             return uid;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public void initialization() {
         {
-            Statement stmt;
-
             Connection connection;
             try {
                 connection = getDataSource().getConnection();
@@ -328,7 +391,7 @@ public class SQLiter implements GiftPackData {
             }
 
             try {
-                stmt = connection.createStatement();
+                Statement stmt = connection.createStatement();
                 stmt.executeUpdate(TABLE_giftpack);
                 stmt.close();
                 connection.close();
@@ -341,10 +404,16 @@ public class SQLiter implements GiftPackData {
                 if (!"[SQLITE_ERROR] SQL error or missing database (table \"giftpack\" already exists)".equals(e.getMessage())) {
                     throw new RuntimeException(e);
                 }
+            }  finally {
+                try {
+                    // 关闭连接
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
-
     }
 
     @Override

@@ -61,6 +61,7 @@ public interface GiftPackData {
      * 保存GiftPack
      * @param giftPack 礼包
      * @param uid 为0时分配新的uid
+     * @return 当传入uid不为0时，返回传入的的uid | 分配到的新uid
      */
     int saveGiftPack(GiftPack giftPack, int uid);
 
