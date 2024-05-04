@@ -2,6 +2,7 @@ package ideamc.giftpack;
 
 import ideamc.giftpack.api.GiftPack;
 import ideamc.giftpack.gui.list.Admin;
+import ideamc.giftpack.gui.list.editor.EditorMain;
 import ideamc.giftpack.utils.DefaultGiftPack;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -38,17 +39,19 @@ public class GiftPackCommand implements CommandExecutor {
             if ("test".equalsIgnoreCase(args[0])) {
                 test(Integer.parseInt(args[1]));
             }
+            if ("open".equalsIgnoreCase(args[0])) {
+                GiftPack giftPack = getData().getGiftPack(Integer.parseInt(args[1]));
+                if (giftPack == null) {
+                    player.sendMessage("该礼包不存在");
+                    return true;
+                }
+                new EditorMain().open(player, giftPack);
+            }
 
             return true;
         } else
 
         if (args.length == 3) {
-
-            if ("test".equalsIgnoreCase(args[0])) {
-                GiftPack giftPack = new DefaultGiftPack(player.getItemInHand(),player.getUniqueId());
-                giftPack.getItemRewards().addItem(new ItemStack(Material.ANVIL));
-                getData().saveGiftPack(giftPack,Integer.parseInt(args[1]));
-            }
 
             return true;
         } else

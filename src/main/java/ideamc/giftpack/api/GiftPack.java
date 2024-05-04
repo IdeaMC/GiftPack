@@ -1,14 +1,19 @@
 package ideamc.giftpack.api;
 
 import ideamc.giftpack.GiftPackMain;
+import org.apache.commons.lang.Validate;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+
+import static ideamc.giftpack.GiftPackMain.getData;
 
 /**
  * @author xiantiao
@@ -21,7 +26,8 @@ public interface GiftPack {
      * @param itemStack 物品
      * @return 0为不是 其他数字为礼包的uid
      */
-    static int isGiftPack(ItemStack itemStack) {
+    static int isGiftPack(@NotNull ItemStack itemStack) {
+        Validate.notNull(itemStack);
         PersistentDataContainer container = itemStack.getItemMeta().getPersistentDataContainer();
         NamespacedKey key = new NamespacedKey(GiftPackMain.getInstance(), "giftpack-uid");
         if (container.has(key, PersistentDataType.INTEGER)) {
@@ -32,6 +38,33 @@ public interface GiftPack {
             return 0;
         }
     }
+
+    static GiftPack getGiftPack(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) return null;
+        int uid = isGiftPack(itemStack);
+        if (uid != 0) {
+            return getData().getGiftPack(uid);
+        }return null;
+    }
+
+//    /**
+//     *
+//     * @param giftPack 物品
+//     */
+//    static ItemStack getGiftPack(GiftPack giftPack) throws IllegalAccessError {
+//        Validate.notNull(giftPack);
+//        if (giftPack.getUid() == 0) throw new IllegalAccessError("giftPack uid can not be 0");
+//
+//        ItemStack item = new ItemStack(giftPack.getDisplayItemStack());
+//
+//        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
+//        NamespacedKey key = new NamespacedKey(GiftPackMain.getInstance(), "giftpack-uid");
+//        ItemMeta meta = item.getItemMeta();
+//        meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, uid);
+//        item.setItemMeta(meta);
+//
+//        return item;
+//    }
 
     int getUid();
     void setUid(int uid);

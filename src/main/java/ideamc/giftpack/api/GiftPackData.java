@@ -27,7 +27,7 @@ public interface GiftPackData {
      * @param uid GiftPack UID
      * @return 可能null
      */
-    DefaultGiftPack getGiftPack(int uid);
+    GiftPack getGiftPack(int uid);
 
     /**
      * 通过 UID 获取 GiftPackDisplayItemStack
@@ -35,13 +35,6 @@ public interface GiftPackData {
      * @return 可能null
      */
     ItemStack getDisplayItemstackOfUid(int uid);
-
-    /**
-     * 通过 UID 获取 GiftPackDisplayName
-     * @param uid GiftPack UID
-     * @return 可能null
-     */
-    String getDisplayNameOfUid(int uid);
 
     /**
      * 获取指定数量的 displayItemStack

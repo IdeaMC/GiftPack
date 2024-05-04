@@ -115,14 +115,11 @@ public class GiftPackList implements Listener {
         }
 
         // 填充剩下的格子
-        for (i = 0; i < defaultInventory.getSize(); i++) {
-            if (defaultInventory.getItem(i) == null) {
-                defaultInventory.setItem(i, FILLER);
+        for (i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, FILLER);
             }
         }
-
-        GUIObject.setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_LAST_PAGE)), papi(lang.LastPage().lore(),page));
-        GUIObject.setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_NEXT_PAGE)), papi(lang.NextPage().lore(),page));
 
         player.openInventory(inventory);
     }

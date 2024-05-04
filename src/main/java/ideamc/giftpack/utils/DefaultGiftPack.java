@@ -66,6 +66,7 @@ public class DefaultGiftPack implements GiftPack {
 
     @Override @NotNull @ShallowCopy
     public ItemStack getOpenItemStack() {
+        if (this.uid == 0) throw  new RuntimeException("giftpack uid can not be 0");
         ItemStack itemStack = new ItemStack(this.displayItemStack);
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.getPersistentDataContainer().set(new NamespacedKey(GiftPackMain.getInstance(), "giftpack-uid"), PersistentDataType.INTEGER, this.uid);

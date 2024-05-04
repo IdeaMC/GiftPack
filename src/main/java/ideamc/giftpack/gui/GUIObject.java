@@ -26,6 +26,9 @@ public class GUIObject implements InventoryHolder {
     public static class GiftPackListGUI extends GUIObject implements InventoryHolder {
         @Override public Inventory getInventory() {return super.getInventory();}
     }
+    public static class EditorMainGUI extends GUIObject implements InventoryHolder {
+        @Override public Inventory getInventory() {return super.getInventory();}
+    }
 
     public static void setLore(ItemStack itemStack, List<String> lore) {
         ItemMeta itemMeta = itemStack.getItemMeta();

@@ -23,7 +23,7 @@ import java.util.UUID;
  * @date 2024/4/30
  * GiftPack
  *
- * TODO 指定uid的覆盖
+ * TODO 指定uid的覆盖 去除表中的name列(不再支持直接获取name)
  */
 public class SQLiter implements GiftPackData {
     private static final GiftPackMain instance = GiftPackMain.getInstance();
@@ -34,7 +34,7 @@ public class SQLiter implements GiftPackData {
     }
 
     static {
-        TABLE_giftpack = "CREATE TABLE \"main\".\"giftpack\" (\"uid\" integer NOT NULL PRIMARY KEY AUTOINCREMENT,\"name\" TEXT(32),\"itemstack\" TEXT,\"creator\" TEXT,\"inventory\" TEXT,\"time\" integer);";
+        TABLE_giftpack = "CREATE TABLE \"main\".\"giftpack\" (\"uid\" integer NOT NULL PRIMARY KEY AUTOINCREMENT,\"itemstack\" TEXT,\"creator\" TEXT,\"inventory\" TEXT,\"time\" integer);";
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
@@ -58,7 +58,7 @@ public class SQLiter implements GiftPackData {
 
 
     @Override
-    public DefaultGiftPack getGiftPack(int uid) {
+    public GiftPack getGiftPack(int uid) {
         try {
             Connection connection = getDataSource().getConnection();
 
@@ -72,15 +72,24 @@ public class SQLiter implements GiftPackData {
 
             rs.next();
 
+            UUID creator;
+            try {
+                creator = UUID.fromString(rs.getString("creator"));
+            } catch (RuntimeException e) {
+                stmt.close();
+                connection.commit();
+                connection.close();
+                return null;
+            }
+
             ItemStack itemStack = ItemStackSerialiser.toItemStack(rs.getString("itemstack"));
-            UUID creator = UUID.fromString(rs.getString("creator"));
             ItemStack[] itemStacks = ItemStackSerialiser.toItemStacks(rs.getString("inventory"));
 
             stmt.close();
             connection.commit();
             connection.close();
 
-            DefaultGiftPack giftPack = new DefaultGiftPack(itemStack,creator);
+            GiftPack giftPack = new DefaultGiftPack(itemStack,creator);
             giftPack.setUid(uid);
 
             int i = 0;
@@ -121,31 +130,6 @@ public class SQLiter implements GiftPackData {
     }
 
     @Override
-    public String getDisplayNameOfUid(int uid) {
-        try {
-            Connection connection = getDataSource().getConnection();
-
-            connection.setAutoCommit(false);
-            String sql = "SELECT name FROM giftpack WHERE uid = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, String.valueOf(uid));
-
-            ResultSet rs = preparedStatement.executeQuery();
-
-            rs.next();
-
-            String name = rs.getString("name");
-
-            connection.commit();
-            connection.close();
-
-            return name;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
     public Gift[] getGiftOfUid(int startUid, int quantity) {
         if (quantity <= 0) throw new IllegalArgumentException("quantity can not be 0 or less than 0");
         if (startUid < 0) throw new IllegalArgumentException("start can not less than 0");
@@ -162,7 +146,7 @@ public class SQLiter implements GiftPackData {
                 preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setString(1, String.valueOf(quantity));
             } else {
-                String sql = "SELECT uid,name,itemstack, FROM giftpack WHERE rowid >= (SELECT rowid FROM giftpack WHERE uid = ?) LIMIT ?";
+                String sql = "SELECT uid,itemstack, FROM giftpack WHERE rowid >= (SELECT rowid FROM giftpack WHERE uid = ?) LIMIT ?";
                 preparedStatement = connection.prepareStatement(sql);
                 preparedStatement.setString(1, String.valueOf(startUid));
                 preparedStatement.setString(2, String.valueOf(quantity));
@@ -172,8 +156,8 @@ public class SQLiter implements GiftPackData {
 
             List<Gift> giftList = new ArrayList<>();
             while (rs.next()) {
-                ItemStack itemStack = new ItemStack(ItemStackSerialiser.toItemStack(rs.getString("itemstack")));
-                giftList.add(new DefaultGift(itemStack,rs.getString("name"),rs.getInt("uid")));
+                ItemStack itemstack = ItemStackSerialiser.toItemStack(rs.getString("itemstack"));
+                giftList.add(new DefaultGift(itemstack,itemstack.getItemMeta().getDisplayName(),rs.getInt("uid")));
             }
 
             connection.commit();
@@ -254,22 +238,20 @@ public class SQLiter implements GiftPackData {
             String sql;
             PreparedStatement preparedStatement;
             if (uid < 1) {
-                sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
+                sql = "INSERT INTO main.giftpack (itemstack, creator, inventory, time) VALUES (?, ?, ?, ?)";
                 preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, giftPack.getDisplayName());
+                preparedStatement.setString(1, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
+                preparedStatement.setString(2, giftPack.getCreator().toString());
+                preparedStatement.setString(3, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
+                preparedStatement.setLong(4, timeMillis); // 假设 timeMillis 是你的时间戳
+            } else {
+                sql = "INSERT INTO main.giftpack (\"uid\", itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, String.valueOf(uid));
                 preparedStatement.setString(2, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
                 preparedStatement.setString(3, giftPack.getCreator().toString());
                 preparedStatement.setString(4, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
                 preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
-            } else {
-                sql = "INSERT INTO main.giftpack (\"uid\", name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?, ?)";
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, String.valueOf(uid));
-                preparedStatement.setString(2, giftPack.getDisplayName());
-                preparedStatement.setString(3, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
-                preparedStatement.setString(4, giftPack.getCreator().toString());
-                preparedStatement.setString(5, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
-                preparedStatement.setLong(6, timeMillis); // 假设 timeMillis 是你的时间戳
             }
 
             preparedStatement.executeUpdate(); // 执行插入操作
@@ -313,7 +295,7 @@ public class SQLiter implements GiftPackData {
         try {
             Statement stmt = connection.createStatement();
             connection.setAutoCommit(false);
-            String sql = "SELECT * FROM giftpack WHERE time = ?";
+            String sql = "SELECT uid FROM giftpack WHERE time = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, String.valueOf(timeMillis));
 

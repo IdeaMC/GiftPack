@@ -49,7 +49,7 @@ public interface Lang {
             }
 
 
-            @AnnotationBasedSorter.Order(110)
+            @AnnotationBasedSorter.Order(120)
             CreatePack CreatePack();
 
             @SubSection
@@ -66,7 +66,7 @@ public interface Lang {
             }
 
 
-            @AnnotationBasedSorter.Order(110)
+            @AnnotationBasedSorter.Order(130)
             MyPacks MyPacks();
 
             @SubSection
@@ -127,10 +127,85 @@ public interface Lang {
                 List<String> lore();
             }
 
-            @AnnotationBasedSorter.Order(120)
+            @AnnotationBasedSorter.Order(130)
             CLOSE Close();
             @SubSection
             interface CLOSE {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("关闭")
+                String name();
+
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("FEATHER")
+                Material material();
+
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"返回到管理主界面"})
+                List<String> lore();
+            }
+        }
+
+
+
+
+
+
+        @ConfComments("\n  # 管理主页面")
+        EditorMain editorMain();
+        @SubSection
+        interface EditorMain {
+            @ConfDefault.DefaultString("GiftPack - editor")
+            @ConfComments("# editor主界面标题名字")
+            @AnnotationBasedSorter.Order(100)
+            String title();
+
+            @AnnotationBasedSorter.Order(110)
+            SetDisplay SetDisplay();
+
+            @SubSection
+            interface SetDisplay {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("设置礼包名字")
+                String name();
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("NAME_TAG")
+                Material material();
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"会覆盖物品礼包名字"})
+                List<String> lore();
+            }
+
+
+            @AnnotationBasedSorter.Order(120)
+            Rewards Rewards();
+
+            @SubSection
+            interface Rewards {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("编辑奖励")
+                String name();
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("CHEST")
+                Material material();
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"编辑当前礼包的奖励"})
+                List<String> lore();
+            }
+
+            @AnnotationBasedSorter.Order(140)
+            Display Display();
+            @SubSection
+            interface Display {
+                @AnnotationBasedSorter.Order(120)
+                @ConfKey("addLore")
+                @ConfDefault.DefaultStrings({"左键获取可以使用的礼包","右键获取Display物品"})
+                List<String> lore();
+            }
+
+            @AnnotationBasedSorter.Order(140)
+            Close Close();
+            @SubSection
+            interface Close {
                 @AnnotationBasedSorter.Order(100)
                 @ConfDefault.DefaultString("关闭")
                 String name();
