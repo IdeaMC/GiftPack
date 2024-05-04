@@ -22,6 +22,8 @@ import java.util.UUID;
  * @author xiantiao
  * @date 2024/4/30
  * GiftPack
+ *
+ * TODO 指定uid的覆盖
  */
 public class SQLiter implements GiftPackData {
     private static final GiftPackMain instance = GiftPackMain.getInstance();
