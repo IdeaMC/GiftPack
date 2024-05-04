@@ -3,21 +3,19 @@ package ideamc.giftpack;
 import ideamc.giftpack.configs.Config;
 import ideamc.giftpack.configs.ConfigManager;
 import ideamc.giftpack.configs.Lang;
-import ideamc.giftpack.dataer.GiftPackData;
-import ideamc.giftpack.dataer.sqlite.SQLiter;
+import ideamc.giftpack.api.GiftPackData;
+import ideamc.giftpack.dataer.SQLiter;
 import ideamc.giftpack.error.SaveDataError;
-import ideamc.giftpack.gui.Admin;
-import ideamc.giftpack.utils.GiftPack;
+import ideamc.giftpack.gui.list.Admin;
+import ideamc.giftpack.gui.list.GiftPackList;
+import ideamc.giftpack.utils.DefaultGiftPack;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -30,7 +28,6 @@ public final class GiftPackMain extends JavaPlugin {
     private static ConfigManager<Lang> langConfigManager;
     private static ConfigManager<Config> configConfigManager;
     private static GiftPackData giftPackData;
-    public final static String sign = "GiftPack ";
 
     @Override
     public void onEnable() {
@@ -50,50 +47,52 @@ public final class GiftPackMain extends JavaPlugin {
         }
 
         PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new ideamc.giftpack.gui.Admin(),this);
-        pluginManager.registerEvents(new ideamc.giftpack.gui.GiftPackList(),this);
+        pluginManager.registerEvents(new Admin(),this);
+        pluginManager.registerEvents(new GiftPackList(),this);
 
-        //ideamc.giftpack.gui.Admin.initialize();
+        //ideamc.giftpack.gui.list.Admin.initialize();
 
         getCommand("giftpack").setExecutor(new GiftPackCommand());
     }
 
-    void test() {
+    public static void test(int uid) {
         GiftPackData giftPackData = new SQLiter();
 
         ItemStack itemStack = new ItemStack(Material.GOLDEN_AXE);
         itemStack.setLore(Collections.singletonList("测试"));
 
-        GiftPack giftPack = new GiftPack("测试礼包",itemStack, UUID.randomUUID());
-        giftPack.getInventory().setItem(4,itemStack);
+        DefaultGiftPack giftPack = new DefaultGiftPack(itemStack, UUID.randomUUID());
+        giftPack.getItemRewards().setItem(4,itemStack);
 
-        int uid;
-        try {
-            uid = giftPackData.saveGiftPack(giftPack,0);
-        } catch (SaveDataError e) {
-            throw new RuntimeException(e);
+        if (uid == 0) {
+            try {
+                uid = giftPackData.saveGiftPack(giftPack,0);
+            } catch (SaveDataError e) {
+                throw new RuntimeException(e);
+            }
         }
 
         try {
-            GiftPack giftPack2 = giftPackData.getGiftPack(uid);
+            DefaultGiftPack giftPack2 = giftPackData.getGiftPack(uid);
 
             Thread.sleep(1000);
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                onlinePlayer.openInventory(giftPack2.getInventory());
+                onlinePlayer.openInventory(giftPack2.getItemRewards());
             }
 
-        } catch (SQLException | InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        getLogger().info("uid："+ uid);
+        GiftPackMain.getInstance().getLogger().info("uid："+ uid);
     }
 
 
 
     @Override
     public void onDisable() {
+
         giftPackData.close();
         instance = null;
     }

@@ -5,7 +5,6 @@ import org.bukkit.Material;
 import space.arim.dazzleconf.annote.*;
 import space.arim.dazzleconf.sorter.AnnotationBasedSorter;
 
-import javax.annotation.processing.SupportedAnnotationTypes;
 import java.util.List;
 
 /**
@@ -20,13 +19,12 @@ import java.util.List;
 public interface Lang {
 
     @ConfComments("# 这里是关于GUI的语言设置")
-    GuiTitle gui();
+    Gui gui();
     @SubSection
-    interface GuiTitle {
+    interface Gui {
 
         @ConfComments("\n  # 管理主页面")
         Admin admin();
-
         @SubSection
         interface Admin {
             @ConfDefault.DefaultString("GiftPack - admin")
@@ -81,6 +79,68 @@ public interface Lang {
                 Material material();
                 @AnnotationBasedSorter.Order(120)
                 @ConfDefault.DefaultStrings({"我的礼包"})
+                List<String> lore();
+            }
+        }
+
+
+        @ConfComments("\n  # 礼包管理主页面")
+        GiftPackList giftPackList();
+        @SubSection
+        interface GiftPackList {
+            @ConfDefault.DefaultString("GiftPack - giftPackList")
+            @ConfComments("# giftPackList主界面标题名字")
+            @AnnotationBasedSorter.Order(100)
+            String title();
+
+            @AnnotationBasedSorter.Order(110)
+            LastPage LastPage();
+            @SubSection
+            interface LastPage {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("上一页")
+                String name();
+
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("FIREWORK_ROCKET")
+                Material material();
+
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"你当前在 %giftpack_gui_gpl_page% 页"})
+                List<String> lore();
+            }
+
+            @AnnotationBasedSorter.Order(120)
+            NextPage NextPage();
+            @SubSection
+            interface NextPage {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("下一页")
+                String name();
+
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("FIREWORK_ROCKET")
+                Material material();
+
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"你当前在 %giftpack_gui_gpl_page% 页"})
+                List<String> lore();
+            }
+
+            @AnnotationBasedSorter.Order(120)
+            CLOSE Close();
+            @SubSection
+            interface CLOSE {
+                @AnnotationBasedSorter.Order(100)
+                @ConfDefault.DefaultString("关闭")
+                String name();
+
+                @AnnotationBasedSorter.Order(110)
+                @ConfDefault.DefaultString("FEATHER")
+                Material material();
+
+                @AnnotationBasedSorter.Order(120)
+                @ConfDefault.DefaultStrings({"返回到管理主界面"})
                 List<String> lore();
             }
         }

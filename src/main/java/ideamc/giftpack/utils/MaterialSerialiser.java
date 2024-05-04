@@ -12,18 +12,15 @@ import space.arim.dazzleconf.serialiser.ValueSerialiser;
  * GiftPack
  */
 public class MaterialSerialiser implements ValueSerialiser<Material> {
-
     @Override
     public Class<Material> getTargetClass() {
         return Material.class;
     }
-
     @Override
     public Material deserialise(FlexibleType flexibleType) throws BadValueException {
         return Material.valueOf(flexibleType.getString());
 
     }
-
     @Override
     public String serialise(Material material, Decomposer decomposer) {
         return material.name();

@@ -1,10 +1,7 @@
 package ideamc.giftpack.utils;
 
 import ideamc.giftpack.GiftPackMain;
-import ideamc.giftpack.dataer.GiftPackData;
-
-import java.util.HashMap;
-import java.util.Map;
+import ideamc.giftpack.api.GiftPackData;
 
 /**
  * @author xiantiao
@@ -12,7 +9,7 @@ import java.util.Map;
  * GiftPack
  */
 public class PAPI {
-    private static GiftPackData giftData = GiftPackMain.getData();
+    private static final GiftPackData giftData = GiftPackMain.getData();
     public static String to(String s) {
 
         s = s.replaceAll("%giftpack_all_size%", String.valueOf(giftData.size()));

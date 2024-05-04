@@ -8,13 +8,16 @@ import org.bukkit.inventory.InventoryHolder;
  * @date 2024/5/2
  * GiftPack
  */
-public class GiftGUI implements InventoryHolder {
+public class GUIObject implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return null;
     }
 
-    static class AdminGUI extends GiftGUI implements InventoryHolder {
+    public static class AdminGUI extends GUIObject implements InventoryHolder {
+        @Override public Inventory getInventory() {return super.getInventory();}
+    }
+    public static class GiftPackListGUI extends GUIObject implements InventoryHolder {
         @Override public Inventory getInventory() {return super.getInventory();}
     }
 }
