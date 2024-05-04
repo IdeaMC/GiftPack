@@ -1,7 +1,6 @@
 package ideamc.giftpack.api;
 
 import ideamc.giftpack.error.DataError;
-import ideamc.giftpack.error.SaveDataError;
 import ideamc.giftpack.utils.DefaultGiftPack;
 import org.bukkit.inventory.ItemStack;
 
@@ -70,7 +69,7 @@ public interface GiftPackData {
      * @param giftPack 礼包
      * @param uid 为0时分配新的uid
      */
-    int saveGiftPack(DefaultGiftPack giftPack, int uid) throws SaveDataError;
+    int saveGiftPack(GiftPack giftPack, int uid);
 
     void initialization();
 

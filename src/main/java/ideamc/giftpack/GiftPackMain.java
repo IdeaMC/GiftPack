@@ -5,7 +5,6 @@ import ideamc.giftpack.configs.ConfigManager;
 import ideamc.giftpack.configs.Lang;
 import ideamc.giftpack.api.GiftPackData;
 import ideamc.giftpack.dataer.SQLiter;
-import ideamc.giftpack.error.SaveDataError;
 import ideamc.giftpack.gui.list.Admin;
 import ideamc.giftpack.gui.list.GiftPackList;
 import ideamc.giftpack.utils.DefaultGiftPack;
@@ -64,13 +63,7 @@ public final class GiftPackMain extends JavaPlugin {
         DefaultGiftPack giftPack = new DefaultGiftPack(itemStack, UUID.randomUUID());
         giftPack.getItemRewards().setItem(4,itemStack);
 
-        if (uid == 0) {
-            try {
-                uid = giftPackData.saveGiftPack(giftPack,0);
-            } catch (SaveDataError e) {
-                throw new RuntimeException(e);
-            }
-        }
+        uid = giftPackData.saveGiftPack(giftPack,uid);
 
         try {
             DefaultGiftPack giftPack2 = giftPackData.getGiftPack(uid);

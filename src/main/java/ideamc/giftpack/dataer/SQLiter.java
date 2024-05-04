@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ideamc.giftpack.GiftPackMain;
 import ideamc.giftpack.api.Gift;
+import ideamc.giftpack.api.GiftPack;
 import ideamc.giftpack.api.GiftPackData;
 import ideamc.giftpack.utils.DefaultGift;
 import ideamc.giftpack.utils.ItemStackSerialiser;
@@ -61,7 +62,7 @@ public class SQLiter implements GiftPackData {
 
             Statement stmt = connection.createStatement();
             connection.setAutoCommit(false);
-            String sql = "SELECT name,itemstack,creator,inventory FROM giftpack WHERE uid = ?";
+            String sql = "SELECT itemstack,creator,inventory FROM giftpack WHERE uid = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, String.valueOf(uid));
 
@@ -234,7 +235,7 @@ public class SQLiter implements GiftPackData {
     }
 
     @Override
-    public int saveGiftPack(DefaultGiftPack giftPack, int uid) {
+    public int saveGiftPack(GiftPack giftPack, int uid) {
         final long timeMillis = System.currentTimeMillis();
 
         Connection connection;
@@ -251,20 +252,22 @@ public class SQLiter implements GiftPackData {
             String sql;
             PreparedStatement preparedStatement;
             if (uid < 1) {
-                sql = "INSERT INTO main.giftpack (itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
+                sql = "INSERT INTO main.giftpack (name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
                 preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
-                preparedStatement.setString(2, giftPack.getCreator().toString());
-                preparedStatement.setString(3, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
-                preparedStatement.setLong(4, timeMillis); // 假设 timeMillis 是你的时间戳
-            } else {
-                sql = "INSERT INTO main.giftpack (\"uid\", itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?)";
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setString(1, String.valueOf(uid));
+                preparedStatement.setString(1, giftPack.getDisplayName());
                 preparedStatement.setString(2, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
                 preparedStatement.setString(3, giftPack.getCreator().toString());
                 preparedStatement.setString(4, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
                 preparedStatement.setLong(5, timeMillis); // 假设 timeMillis 是你的时间戳
+            } else {
+                sql = "INSERT INTO main.giftpack (\"uid\", name, itemstack, creator, inventory, time) VALUES (?, ?, ?, ?, ?, ?)";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, String.valueOf(uid));
+                preparedStatement.setString(2, giftPack.getDisplayName());
+                preparedStatement.setString(3, ItemStackSerialiser.toJson(giftPack.getDisplayItemStack()));
+                preparedStatement.setString(4, giftPack.getCreator().toString());
+                preparedStatement.setString(5, ItemStackSerialiser.toJson(giftPack.getItemRewards().getContents())); // 假设 json 是你的 JSON 数据
+                preparedStatement.setLong(6, timeMillis); // 假设 timeMillis 是你的时间戳
             }
 
             preparedStatement.executeUpdate(); // 执行插入操作

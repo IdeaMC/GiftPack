@@ -45,12 +45,12 @@ public class GiftPackList implements Listener {
     private static final int SLOT_CLOSE = 53;
 
     static {
-        setDisplayName(lang.LastPage().name(), LAST_PAGE);
-        setDisplayName(lang.NextPage().name(), NEXT_PAGE);
-        setDisplayName(lang.Close().name(), CLOSE);
-        setDisplayName(" ", FILLER);
+        GUIObject.setDisplayName(lang.LastPage().name(), LAST_PAGE);
+        GUIObject.setDisplayName(lang.NextPage().name(), NEXT_PAGE);
+        GUIObject.setDisplayName(lang.Close().name(), CLOSE);
+        GUIObject.setDisplayName(" ", FILLER);
 
-        setLore(CLOSE, lang.Close().lore());
+        GUIObject.setLore(CLOSE, lang.Close().lore());
 
         data = GiftPackMain.getData();
 
@@ -121,8 +121,8 @@ public class GiftPackList implements Listener {
             }
         }
 
-        setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_LAST_PAGE)), papi(lang.LastPage().lore(),page));
-        setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_NEXT_PAGE)), papi(lang.NextPage().lore(),page));
+        GUIObject.setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_LAST_PAGE)), papi(lang.LastPage().lore(),page));
+        GUIObject.setLore(Objects.requireNonNull(defaultInventory.getItem(SLOT_NEXT_PAGE)), papi(lang.NextPage().lore(),page));
 
         player.openInventory(inventory);
     }
@@ -130,15 +130,5 @@ public class GiftPackList implements Listener {
         return list.stream()
                 .map(s -> s.replaceAll("%giftpack_gui_gpl_page%", String.valueOf(page)))
                 .collect(Collectors.toList());
-    }
-    private static void setLore(ItemStack itemStack, List<String> lore) {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setLore(lore.stream().map(PAPI::to).collect(Collectors.toList()));
-        itemStack.setItemMeta(itemMeta);
-    }
-    private static void setDisplayName(String displayName, ItemStack itemStack) {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setDisplayName(displayName);
-        itemStack.setItemMeta(itemMeta);
     }
 }

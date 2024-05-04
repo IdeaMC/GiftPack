@@ -3,7 +3,6 @@ package ideamc.giftpack.gui.list;
 import ideamc.giftpack.GiftPackMain;
 import ideamc.giftpack.configs.Lang;
 import ideamc.giftpack.gui.GUIObject;
-import ideamc.giftpack.utils.PAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,10 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * @author 40482
@@ -35,10 +32,10 @@ public class Admin implements Listener {
 
 
     static {
-        setDisplayName(lang.PackManage().name(), PACK_MANAGE);
-        setDisplayName(lang.CreatePack().name(), CREATE_PACK);
-        setDisplayName(lang.MyPacks().name(), MY_PACKS);
-        setDisplayName(" ", FILLER);
+        GUIObject.setDisplayName(lang.PackManage().name(), PACK_MANAGE);
+        GUIObject.setDisplayName(lang.CreatePack().name(), CREATE_PACK);
+        GUIObject.setDisplayName(lang.MyPacks().name(), MY_PACKS);
+        GUIObject.setDisplayName(" ", FILLER);
 
         inventory = Bukkit.createInventory(new GUIObject.AdminGUI(), 54, lang.title());
 
@@ -70,21 +67,10 @@ public class Admin implements Listener {
     }
 
     public static void open(Player player) {
-        setLore(inventory.getItem(SLOT_PACK_MANAGE), lang.PackManage().lore());
-        setLore(inventory.getItem(SLOT_CREATE_PACK), lang.CreatePack().lore());
-        setLore(inventory.getItem(SLOT_MY_PACKS), lang.MyPacks().lore());
+        GUIObject.setLore(Objects.requireNonNull(inventory.getItem(SLOT_PACK_MANAGE)), lang.PackManage().lore());
+        GUIObject.setLore(Objects.requireNonNull(inventory.getItem(SLOT_CREATE_PACK)), lang.CreatePack().lore());
+        GUIObject.setLore(Objects.requireNonNull(inventory.getItem(SLOT_MY_PACKS)), lang.MyPacks().lore());
 
         player.openInventory(inventory);
-    }
-
-    private static void setLore(ItemStack itemStack, List<String> lore) {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setLore(lore.stream().map(PAPI::to).collect(Collectors.toList()));
-        itemStack.setItemMeta(itemMeta);
-    }
-    private static void setDisplayName(String displayName, ItemStack itemStack) {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setDisplayName(displayName);
-        itemStack.setItemMeta(itemMeta);
     }
 }
